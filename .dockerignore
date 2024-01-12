@@ -1,0 +1,8 @@
+hasura/
+build/
+public/
+node_modules/
+.env
+.cache
+.firebase
+postgres-files/

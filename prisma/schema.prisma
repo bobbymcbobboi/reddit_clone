@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Comment {
+  author          String
+  author_fullname String
+  body            String
+  created_at      DateTime
+  edited          Boolean
+  gilded          Int
+  id              String   @id
+  is_submitter    Boolean
+  link_id         String
+  locked          Boolean
+  name            String
+  parent_id       String
+  permalink       String
+  score           Int
+  subreddit       String
+  subreddit_id    String
+
+  @@index([parent_id])
+  @@index([link_id])
+}
+
+model Post {
+  author          String
+  author_fullname String
+  created_at      DateTime
+  id              String   @id
+  name            String
+  over_18         Boolean
+  permalink       String
+  score           Int
+  selftext        String
+  subreddit       String
+  subreddit_id    String
+  thumbnail       String
+  title           String
+  url             String
+
+  @@index([subreddit])
+  @@index([score])
+  @@index([created_at])
+}

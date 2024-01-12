@@ -1,0 +1,5 @@
+.postgres-files
+.env
+.cache
+.app
+.git
