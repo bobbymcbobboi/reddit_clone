@@ -9,6 +9,7 @@ import {loader as commentLoader} from "~/routes/comment";
 
 export async function loader({params}: LoaderFunctionArgs) {
 
+  // the only prisma query i used lol
   const post = await prisma.post.findUnique({
     where: {
       id: params.postId
@@ -84,6 +85,9 @@ export default function Post() {
     }
   }
 
+  // recursive component for comment threads
+  // would've made this a separate component but i couldn't figure out how to get the types working without referencing
+  // the returned object of the loader directly for the type using typeof
   const CommentThread = ({comment}: { comment: CommentWithReplies }) => {
     return (
       <div className='border-2 p-1 my-2 px-3'>

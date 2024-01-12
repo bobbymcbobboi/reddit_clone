@@ -10,6 +10,7 @@ export async function loader({params, request}: LoaderFunctionArgs) {
   let score = parseInt(url.searchParams.get('score') ?? '')
   let time = url.searchParams.get('time')
   let extraCondition = Prisma.sql``
+  // keyset pagination conditions
   if (score) {
     extraCondition = Prisma.sql`AND p.score < ${score}`
   }

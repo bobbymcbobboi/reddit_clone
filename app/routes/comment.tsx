@@ -2,6 +2,7 @@ import {json, LoaderFunctionArgs} from "@remix-run/node";
 import {prisma} from "~/db.server";
 import {Comment} from "@prisma/client";
 
+// api route for loading more comments
 export async function loader({request}: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const commentId = url.searchParams.get('commentId')
