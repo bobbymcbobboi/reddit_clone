@@ -27,13 +27,17 @@ export async function loader({params}: LoaderFunctionArgs) {
   // limiting for perf reasons bc i didn't do pagination for comments
   const comments = await prisma.$queryRaw<(Comment & { numReplies: number })[]>`
     WITH cte_comment AS (SELECT * FROM "Comment" WHERE parent_id = 't3_' || ${post.id} ORDER BY score DESC LIMIT 50), 
-    cte_child_comment AS (SELECT c.* FROM "Comment" as c JOIN cte_comment ON c.parent_id = 't1_' || cte_comment.id)
+    cte_child_comment AS (SELECT c1.* FROM cte_comment CROSS JOIN LATERAL(SELECT * FROM "Comment" c WHERE c.parent_id = 't1_' || cte_comment.id ORDER BY score DESC LIMIT 10) c1)
     SELECT c.*, c1."numReplies" FROM cte_child_comment c
     CROSS JOIN LATERAL (
     SELECT COUNT(*)::int AS "numReplies"
     FROM "Comment" c1
     WHERE c1.parent_id = 't1_' || c.id
-    ) c1 UNION SELECT *, 0 FROM cte_comment ORDER BY score DESC
+    ) c1 UNION SELECT cte_comment.*, c2."numReplies" FROM cte_comment CROSS JOIN LATERAL (
+    SELECT COUNT(*)::int AS "numReplies"
+    FROM "Comment" c1
+    WHERE c1.parent_id = 't1_' || cte_comment.id
+    ) c2 ORDER BY score DESC
   `
   return json({
     post: post,
@@ -101,13 +105,14 @@ export default function Post() {
         <p>
           {comment.body}
         </p>
-        {comment.replies.length > 0 ? comment.replies.map(r => (
+        {comment.replies.length > 0 && comment.replies.map(r => (
             <div className='ml-4' key={r.id}>
               <CommentThread comment={r}/>
             </div>
 
-          )) :
-          (comment.numReplies > 0) &&
+          ))}
+        {
+          (comment.numReplies > comment.replies.length) &&
             <button className={'mt-2'} onClick={() => {
               setClickedCommentId(comment.id)
               fetcher.load(`/comment?index&commentId=${comment.id}`)
@@ -122,7 +127,7 @@ export default function Post() {
                       load more comments
                     </p>
                     <p className={'text-gray-400'}>
-                      ({comment.numReplies} {comment.numReplies > 1 ? 'replies' : 'reply'})
+                      ({comment.numReplies - comment.replies.length} {comment.numReplies - comment.replies.length > 1 ? 'replies' : 'reply'})
                     </p>
                   </div>
               }
