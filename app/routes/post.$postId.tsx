@@ -23,8 +23,9 @@ export async function loader({params}: LoaderFunctionArgs) {
   // first CTE (common table expression) queries for all top level comments of post, second CTE queries for all replies
   // to those comments. Then, use a lateral join to get number of replies to those replies so user can load more
   // prisma doesn't support CTEs, so have to use a raw query
+  // limiting for perf reasons bc i didn't do pagination for comments
   const comments = await prisma.$queryRaw<(Comment & { numReplies: number })[]>`
-    WITH cte_comment AS (SELECT * FROM "Comment" WHERE parent_id = 't3_' || ${post.id}), 
+    WITH cte_comment AS (SELECT * FROM "Comment" WHERE parent_id = 't3_' || ${post.id} ORDER BY score DESC LIMIT 50), 
     cte_child_comment AS (SELECT c.* FROM "Comment" as c JOIN cte_comment ON c.parent_id = 't1_' || cte_comment.id)
     SELECT c.*, c1."numReplies" FROM cte_child_comment c
     CROSS JOIN LATERAL (
@@ -69,6 +70,7 @@ export default function Post() {
     }
   })
   const params = useParams()
+  // should probably memoize
   const topLevelComments: CommentWithReplies[] = commentsWithReplies.filter(c => c.parent_id === 't3_' + post.id)
   // building up the tree from the flat array of comments
   // map to optimize speed
@@ -146,7 +148,7 @@ export default function Post() {
           </p>
           <div>
             <p>
-              Submitted {DateTime.fromISO(post.created_at).toRelative()} ago by {post.author_fullname}
+              Submitted {DateTime.fromISO(post.created_at).toRelative()} ago by {post.author}
             </p>
           </div>
           <p>

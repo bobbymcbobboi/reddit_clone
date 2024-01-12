@@ -5,6 +5,7 @@ import {Comment} from "@prisma/client";
 export async function loader({request}: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const commentId = url.searchParams.get('commentId')
+  console.log(commentId)
   const comments = await prisma.$queryRaw<(Comment & {numReplies: number})[]>`
     WITH cte_comment AS (SELECT * FROM "Comment" WHERE parent_id = 't1_' || ${commentId})
     SELECT c.*, c1."numReplies" FROM cte_comment c

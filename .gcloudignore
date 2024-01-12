@@ -1,5 +1,5 @@
-.postgres-files
+/.postgres-files
 .env
-.cache
-.app
-.git
+/.cache
+/.git
+/node_modules
