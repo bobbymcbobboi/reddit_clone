@@ -51,4 +51,6 @@ model Post {
   @@index([subreddit])
   @@index([score])
   @@index([created_at])
+  @@index([subreddit, score])
+  @@index([subreddit, created_at])
 }
